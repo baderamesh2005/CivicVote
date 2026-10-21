@@ -16,6 +16,16 @@ def create_app(config_class=Config):
 
     db.init_app(app)
 
+    with app.app_context():
+        db.create_all()
+        try:
+            from models import Admin
+            if not Admin.query.first():
+                from seeds.seed_data import seed_database
+                seed_database()
+        except Exception as e:
+            app.logger.warning(f"Database auto-init note: {e}")
+
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(election_bp, url_prefix='/api/election')
     app.register_blueprint(vote_bp, url_prefix='/api/vote')
